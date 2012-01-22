@@ -24,7 +24,7 @@ class ScalaWebConsole extends Applet {
 			java.security.AccessController.doPrivileged(new java.security.PrivilegedAction[Any]() {
 				def run() {
 
-					val is = new java.net.URL(getCodeBase().toExternalForm() + "/scala-library-2.9.1.jar").openStream()
+					val is = new java.net.URL(getCodeBase().toExternalForm() + "static/scala-library-2.9.1.jar").openStream()
 					val file = File.createTempFile("foo", ".jar")
 					val os = new FileOutputStream(file)
 					val b: Array[Byte] = Array.make(8192, 0)
