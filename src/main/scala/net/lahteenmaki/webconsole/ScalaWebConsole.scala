@@ -34,7 +34,7 @@ class ScalaWebConsole extends Applet {
 						read = is.read(b, 0, 8192)
 					}
 					is.close()
-					libPath = "file:/" + file.getAbsolutePath()
+					libPath = file.getAbsolutePath()
 					null
 				}
 			});
