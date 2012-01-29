@@ -64,9 +64,9 @@ class ScalaWebConsole extends Applet {
 
 			object CustomSettings extends Settings {
 				classpath append ExternalFileProvider.scalalib(getCodeBase, scalaVersion)
-				val query = java.net.URLEncoder.encode("http://www.scala-tools.org/repo-releases/org/scala-tools/testing/scalatest/0.9.5/scalatest-0.9.5.jar", "UTF-8") //getDocumentBase.getQuery
+				val query = getDocumentBase.getQuery
 				if (query != null) {
-					decode(query, "UTF-8").split(";").foreach(p => classpath.append(ExternalFileProvider.url(p)))
+					decode(query, "UTF-8").split("\\s+").foreach(p => classpath.append(ExternalFileProvider.url(p)))
 				}
 			}
 
