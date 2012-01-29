@@ -5,17 +5,12 @@
 	<title>Programming language Web Console</title>
 </head>
 <body>
-	<!-- <object classid="java:net.lahteenmaki.webconsole.ScalaWebConsole.class" 
-			codetype="application/java"
-			codebase="file:/Users/inferior/Documents/workspace/WebConsole/target/"
-			archive="WebConsole-0.1-SNAPSHOT.jar WebConsole-0.1-SNAPSHOT/WEB-INF/lib/scala-library-2.9.1.jar WebConsole-0.1-SNAPSHOT/WEB-INF/lib/scala-compiler-2.9.1.jar" 
-			width="600" 
-			height="200"></object> -->
 		<applet code="net.lahteenmaki.webconsole.ScalaWebConsole.class"
 			archive="target/WebConsole-0.1-SNAPSHOT.jar" 
 			codebase="file:/Users/inferior/Documents/workspace/WebConsole/"
 			width="600" 
 			height="200">
+			<param name="scalaVersion" value="2.9.1" />
 		</applet>
 </body>
 </html>
