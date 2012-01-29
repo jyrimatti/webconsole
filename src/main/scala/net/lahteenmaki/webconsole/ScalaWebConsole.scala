@@ -68,6 +68,7 @@ class ScalaWebConsole extends Applet {
 				if (query != null) {
 					decode(query, "UTF-8").split("\\s+").foreach(p => classpath.append(ExternalFileProvider.url(p)))
 				}
+				println(classpath)
 			}
 
 			object ResetCaretOnInputKeyListener extends KeyAdapter {
