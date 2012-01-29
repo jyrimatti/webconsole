@@ -17,33 +17,38 @@ import java.util.concurrent._
 import java.awt.event.{ KeyEvent, KeyAdapter }
 import java.security._
 import java.net.URL
+import java.io.InputStream
 import java.net.URLDecoder.decode
 
 /**
  * The compiler seems to require the scala-lib from its own classpath, even though it's already
  * present in the applet classpath
  */
-object ScalaLibProvider {
-	def path(codeBase: URL, scalaVersion: String) = {
+object ExternalFileProvider {
+	def readToFile(is: InputStream) = {
+		try {
+			val file = File.createTempFile("scalalib", ".jar")
+			val os = new FileOutputStream(file)
+			val b: Array[Byte] = Array.make(8192, 0)
+			var read = is.read(b, 0, 8192)
+			while (read > -1) {
+				os.write(b, 0, read)
+				read = is.read(b, 0, 8192)
+			}
+			file.getAbsolutePath
+		} finally {
+			is.close
+		}
+	}
+	def scalalib(codeBase: URL, scalaVersion: String) = {
 		AccessController.doPrivileged(new PrivilegedAction[String]() {
 			def run() = {
 				val is = new URL(codeBase.toExternalForm + "static/scala-library-" + scalaVersion + ".jar").openStream
-				try {
-					val file = File.createTempFile("scalalib", ".jar")
-					val os = new FileOutputStream(file)
-					val b: Array[Byte] = Array.make(8192, 0)
-					var read = is.read(b, 0, 8192)
-					while (read > -1) {
-						os.write(b, 0, read)
-						read = is.read(b, 0, 8192)
-					}
-					file.getAbsolutePath
-				} finally {
-					is.close
-				}
+				readToFile(is)
 			}
 		});
 	}
+	def url(url: String) = readToFile(new URL(url).openStream)
 }
 
 class ScalaWebConsole extends Applet {
@@ -58,9 +63,10 @@ class ScalaWebConsole extends Applet {
 			var handledLength = pane.text.length
 
 			object CustomSettings extends Settings {
-				classpath append ScalaLibProvider.path(getCodeBase, scalaVersion)
-				if (getDocumentBase.getQuery != null) {
-					decode(getDocumentBase.getQuery, "UTF-8").split(";").foreach(p => classpath.append(p))
+				classpath append ExternalFileProvider.scalalib(getCodeBase, scalaVersion)
+				val query = java.net.URLEncoder.encode("http://www.scala-tools.org/repo-releases/org/scala-tools/testing/scalatest/0.9.5/scalatest-0.9.5.jar", "UTF-8") //getDocumentBase.getQuery
+				if (query != null) {
+					decode(query, "UTF-8").split(";").foreach(p => classpath.append(ExternalFileProvider.url(p)))
 				}
 			}
 
