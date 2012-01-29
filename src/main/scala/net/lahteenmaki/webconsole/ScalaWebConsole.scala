@@ -50,7 +50,7 @@ class ScalaWebConsole extends Applet {
 
 	object ui extends UI with Reactor {
 		def init() = {
-			val pane = new TextArea
+			val pane = new TextArea { text = getDocumentBase.getQuery }
 
 			val queue = new PipedWriter
 
@@ -95,11 +95,11 @@ class ScalaWebConsole extends Applet {
 					super.flush
 				}
 			})
+			
+			queue write pane.text
 
 			Executors.newSingleThreadExecutor.submit(Executors.callable(new PrivilegedAction[Unit] {
-				def run = {
-					new ILoop(in, out).process(CustomSettings); queue write getDocumentBase.getQuery
-				}
+				def run = new ILoop(in, out).process(CustomSettings)
 			}))
 		}
 	}
