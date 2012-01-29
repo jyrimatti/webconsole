@@ -17,6 +17,7 @@ import java.util.concurrent._
 import java.awt.event.{ KeyEvent, KeyAdapter }
 import java.security._
 import java.net.URL
+import java.net.URLDecoder.decode
 
 /**
  * The compiler seems to require the scala-lib from its own classpath, even though it's already
@@ -58,6 +59,9 @@ class ScalaWebConsole extends Applet {
 
 			object CustomSettings extends Settings {
 				classpath append ScalaLibProvider.path(getCodeBase, scalaVersion)
+				if (getDocumentBase.getQuery != null) {
+					decode(getDocumentBase.getQuery, "UTF-8").split(";").foreach(p => classpath.append(p))
+				}
 			}
 
 			object ResetCaretOnInputKeyListener extends KeyAdapter {
@@ -99,9 +103,9 @@ class ScalaWebConsole extends Applet {
 			Executors.newSingleThreadExecutor.submit(Executors.callable(new PrivilegedAction[Unit] {
 				def run = {
 					val loop = new ILoop(in, out)
-					val query = getDocumentBase.getQuery
-					if (query != null) {
-						queue write query + '\n'
+					val ref = getDocumentBase.getRef
+					if (ref != null) {
+						queue write decode(ref, "UTF-8") + '\n'
 					}
 					loop.process(CustomSettings)
 				}
