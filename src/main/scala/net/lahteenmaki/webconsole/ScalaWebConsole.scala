@@ -50,7 +50,7 @@ class ScalaWebConsole extends Applet {
 
 	object ui extends UI with Reactor {
 		def init() = {
-			val pane = new TextArea { text = getDocumentBase.getQuery }
+			val pane = new TextArea { text = getDocumentBase.getQuery + '\n' }
 
 			val queue = new PipedWriter
 
