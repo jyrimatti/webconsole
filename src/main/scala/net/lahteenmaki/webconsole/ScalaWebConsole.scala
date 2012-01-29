@@ -1,8 +1,9 @@
 package net.lahteenmaki.webconsole
 
 import scala.swing.Applet
+
 import scala.swing.Reactor
-import scala.swing.TextArea
+import scala.swing._
 import scala.swing.Button
 import scala.swing.event.ButtonClicked
 import scala.swing.BoxPanel
@@ -12,20 +13,22 @@ import scala.tools.nsc.settings._
 import scala.tools.nsc.interpreter._
 import java.io._
 import scala.swing.event._
-import java.util.concurrent.Semaphore
-import java.awt.event.{ KeyEvent, KeyListener }
+import java.util.concurrent._
+import java.awt.event.{ KeyEvent, KeyAdapter }
+import java.security._
+import java.net.URL
 
-class ScalaWebConsole extends Applet {
-	object ui extends UI with Reactor {
-		def init() = {
-			val pane = new TextArea
-
-			var libPath = ""
-			java.security.AccessController.doPrivileged(new java.security.PrivilegedAction[Any]() {
-				def run() {
-
-					val is = new java.net.URL(getCodeBase().toExternalForm() + "static/scala-library-2.9.1.jar").openStream()
-					val file = File.createTempFile("foo", ".jar")
+/**
+ * The compiler seems to require the scala-lib from its own classpath, even though it's already
+ * present in the applet classpath
+ */
+object ScalaLibProvider {
+	def path(codeBase: URL, scalaVersion: String) = {
+		AccessController.doPrivileged(new PrivilegedAction[String]() {
+			def run() = {
+				val is = new URL(codeBase.toExternalForm + "static/scala-library-" + scalaVersion + ".jar").openStream
+				try {
+					val file = File.createTempFile("scalalib", ".jar")
 					val os = new FileOutputStream(file)
 					val b: Array[Byte] = Array.make(8192, 0)
 					var read = is.read(b, 0, 8192)
@@ -33,54 +36,69 @@ class ScalaWebConsole extends Applet {
 						os.write(b, 0, read)
 						read = is.read(b, 0, 8192)
 					}
-					is.close()
-					libPath = file.getAbsolutePath()
-					null
+					file.getAbsolutePath
+				} finally {
+					is.close
 				}
-			});
+			}
+		});
+	}
+}
 
-			pane.peer.addKeyListener(new KeyListener {
-				def keyPressed(e: KeyEvent) = if (!e.isMetaDown && !e.isActionKey) pane.caret.position = pane.text.length
-				def keyReleased(e: KeyEvent) {}
-				def keyTyped(e: KeyEvent) {}
-			})
+class ScalaWebConsole extends Applet {
+	def scalaVersion = getParameter("scalaVersion")
 
-			val lo = new Semaphore(0)
-			var allowUpdate = true
-			var length = pane.text.length
-			val buf = new ByteArrayOutputStream
-			pane.reactions += {
-				case e: ValueChanged if allowUpdate && pane.text.length > length && pane.text.last == '\n' => {
-					buf.write(pane.text.substring(length).getBytes); lo.release
+	object ui extends UI with Reactor {
+		def init() = {
+			val pane = new TextArea { text = getDocumentBase.getQuery }
+
+			val queue = new PipedWriter
+
+			var handledLength = pane.text.length
+
+			object CustomSettings extends Settings {
+				classpath append ScalaLibProvider.path(getCodeBase, scalaVersion)
+			}
+
+			object ResetCaretOnInputKeyListener extends KeyAdapter {
+				override def keyPressed(e: KeyEvent) = if (e.getKeyCode != KeyEvent.VK_META && !e.isActionKey) {
+					pane.caret.position = pane.text.length
+				}
+			}
+
+			object IgnoreBackSpaceToHistoryKeyListener extends KeyAdapter {
+				override def keyPressed(e: KeyEvent) = if (e.getKeyCode == KeyEvent.VK_BACK_SPACE && pane.text.length <= handledLength) {
+					e.consume
+				}
+			}
+
+			object SubmitContentKeyListener extends KeyAdapter {
+				override def keyPressed(e: KeyEvent) = if (e.getKeyCode == KeyEvent.VK_ENTER) {
+					queue write pane.text.substring(handledLength) + e.getKeyChar
+					handledLength = pane.text.length
 				}
 			}
 
 			contents = new ScrollPane { contents = pane }
-			val reader = new BufferedReader(new Reader {
-				def close = Unit
-				def read(b: Array[Char], start: Int, length: Int) = {
-					while (buf.size == 0) lo.acquire; val data = new String(buf.toByteArray); val portion = data.zipWithIndex.take(length); (portion.foreach {
-						case (v, i) => b(start + i) = v
-					}); buf.reset(); buf.write(data.drop(portion.length).getBytes); portion.length
-				}
-			})
-			val out = new JPrintWriter(new StringWriter() {
-				override def flush = { validate(); allowUpdate = false; pane.text += getBuffer.toString; getBuffer.setLength(0); pane.caret.position = pane.text.length; length = pane.text.length; allowUpdate = true; super.flush; }
-			})
-			val loop = new ILoop(reader, out)
 
-			val settings = new Settings
-			settings.classpath.append(libPath)
-			new Thread(new Runnable() {
-				def run() {
-					java.security.AccessController.doPrivileged(new java.security.PrivilegedAction[Any]() {
-						def run() {
-							loop.process(settings)
-							null
-						}
-					});
+			pane.peer.addKeyListener(ResetCaretOnInputKeyListener)
+			pane.peer.addKeyListener(IgnoreBackSpaceToHistoryKeyListener)
+			pane.peer.addKeyListener(SubmitContentKeyListener)
+
+			val in = new BufferedReader(new PipedReader(queue))
+			val out = new JPrintWriter(new StringWriter {
+				override def flush = {
+					pane.text += getBuffer.toString
+					getBuffer.setLength(0)
+					pane.caret.position = pane.text.length
+					handledLength = pane.text.length
+					super.flush
 				}
-			}).start
+			})
+
+			Executors.newSingleThreadExecutor.submit(Executors.callable(new PrivilegedAction[Unit] {
+				def run = new ILoop(in, out).process(CustomSettings)
+			}))
 		}
 	}
 }
