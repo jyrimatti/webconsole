@@ -5,6 +5,7 @@
 	<title>Programming language Web Console</title>
 </head>
 <body>
+	<div>
 		<applet code="net.lahteenmaki.webconsole.ScalaWebConsole.class"
 			archive="static/WebConsole-0.1-SNAPSHOT.jar"
 			codebase="/"
@@ -12,5 +13,14 @@
 			height="200">
 			<param name="scalaVersion" value="2.9.1" />
 		</applet>
+	</div>
+	<div>
+		<applet code="net.lahteenmaki.webconsole.JRubyWebConsole.class"
+			archive="static/WebConsole-0.1-SNAPSHOT.jar,static/jruby-complete-signed.jar"
+			codebase="/"
+			width="600" 
+			height="200">
+		</applet>
+	</div>
 </body>
 </html>
