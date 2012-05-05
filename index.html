@@ -9,6 +9,13 @@
 			$('.box').click(function() {
 				$(this).children().slideToggle().click(function(){return false;});
 			});
+			
+			$('.layout .vertical').click(function() {
+				$('body').removeClass('horizontal').addClass('vertical');
+			});
+			$('.layout .horizontal').click(function() {
+				$('body').removeClass('vertical').addClass('horizontal');
+			});
 		});
 	</script>
 	<script src="http://coffeescript.org/extras/coffee-script.js"></script>
@@ -47,6 +54,15 @@
 	
 	<link href='http://fonts.googleapis.com/css?family=Exo' rel='stylesheet' type='text/css' />
 	<style type="text/css">
+		body {
+			font-family: 'Exo', sans-serif;
+		}
+		.layout {
+			text-align: right;
+		}
+		.layout span:hover {
+			font-weight: bold;
+		}
 		.box {
 			margin: 0.5em;
 			padding: 0.25em 0.5em;
@@ -55,8 +71,11 @@
 			border-radius: 0.25em;
 			background-color: #11FFFF;
 			
-			font-family: 'Exo', sans-serif;
 			font-size: 2em;
+		}
+		.horizontal .box {
+			width: 28%;
+			float: left;
 		}
 		.error {
 			color: Red;
@@ -84,6 +103,10 @@
 	</style>
 </head>
 <body>
+	<div class="layout">
+		<span class="vertical">vertical</span> | <span class="horizontal">horizontal</span>
+	</div>
+	
 	<div class="box scala">
 		Scala
 		<div class="content">
