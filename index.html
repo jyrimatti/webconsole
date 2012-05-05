@@ -6,7 +6,7 @@
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
-			$('.box').click(function() {
+			$('.box').click(function() {
 				$(this).children().slideToggle().click(function(){return false;});
 			});
 		});
@@ -36,7 +36,7 @@
       compileSource()
       false
 
-    $(document.body)
+    $('.coffeescript textarea')
       .keydown (e) -> 
         evalJS() if e.which == 13
     
