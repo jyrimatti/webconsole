@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Programming language Web Console</title>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('.box').click(function() {
+				$(this).children().slideToggle().click(function(){return false;});
+			});
+			
+			$('.layout .vertical').click(function() {
+				$('body').removeClass('horizontal').addClass('vertical');
+			});
+			$('.layout .horizontal').click(function() {
+				$('body').removeClass('vertical').addClass('horizontal');
+			});
+		});
+	</script>
+	<script src="http://coffeescript.org/extras/coffee-script.js"></script>
+	<script type="text/coffeescript">
+		# Shamelessly copied from coffeescript.org	
+
+    compileSource = ->
+      source = $('.coffeescript textarea').val()
+      window.compiledJS = ''
+      try
+        window.compiledJS = CoffeeScript.compile source, bare: on
+        $('.coffeescript .error').hide()
+      catch error
+        $('.coffeescript .error').text(error.message).show()
+
+    $('.coffeescript textarea').keyup -> compileSource()
+
+    evalJS = ->
+      try
+        eval window.compiledJS
+      catch error then alert error
+
+    window.loadConsole = (coffee) ->
+      $('.coffeescript textarea').val coffee
+      compileSource()
+      false
+
+    $('.coffeescript textarea')
+      .keydown (e) -> 
+        evalJS() if e.which == 13
+    
+    loadConsole decodeURIComponent location.hash.replace(/^#/, '')
+		
+    compileSource()	
+	</script>
+	
+	<link href='http://fonts.googleapis.com/css?family=Exo' rel='stylesheet' type='text/css' />
+	<style type="text/css">
+		body {
+			font-family: 'Exo', sans-serif;
+		}
+		.layout {
+			text-align: right;
+		}
+		.layout span:hover {
+			font-weight: bold;
+		}
+		.box {
+			margin: 0.5em;
+			padding: 0.25em 0.5em;
+			
+			border: 1px solid #FF0000;
+			border-radius: 0.25em;
+			background-color: #11FFFF;
+			
+			font-size: 2em;
+		}
+		.horizontal .box {
+			width: 28%;
+			float: left;
+		}
+		.error {
+			color: Red;
+			font-size: 0.5em;
+		}
+		.content {
+			display: none;
+			margin-top: 0.5em;
+		}
+		.scala {
+			color: #052C6E;
+			border-color: #052C6E;
+			background-color: #6A92D4;
+		}
+		.jruby {
+			color: #A60000;
+			border-color: #A60000;
+			background-color: #FF7373;
+		}
+		.coffeescript {
+			color: #00675C;
+			border-color: #00675C;
+			background-color: #5DCFC3;
+		}
+	</style>
+</head>
+<body>
+	<div class="layout">
+		<span class="vertical">vertical</span> | <span class="horizontal">horizontal</span>
+	</div>
+	
+	<div class="box scala">
+		Scala
+		<div class="content">
+			<applet code="net.lahteenmaki.webconsole.ScalaWebConsole.class"
+				archive="static/WebConsole-0.1-SNAPSHOT.jar"
+				codebase="/"
+				width="100%" 
+				height="200">
+				<param name="scalaVersion" value="2.9.1" />
+			</applet>
+		</div>
+	</div>
+	
+	<div class="box clojure">
+		Clojure
+		<div class="content">
+			<applet code="clojure.main.class"
+				archive="static/WebConsole-0.1-SNAPSHOT.jar"
+				codebase="/"
+				width="100%" 
+				height="200">
+			</applet>
+		</div>
+	</div>
+
+	<div class="box jruby">
+		JRuby
+		<div class="content">
+			<applet code="net.lahteenmaki.webconsole.JRubyWebConsole.class"
+				archive="static/WebConsole-0.1-SNAPSHOT.jar,static/jruby-complete-signed.jar"
+				codebase="/"
+				width="100%" 
+				height="200">
+			</applet>
+		</div>
+	</div>
+	
+	<div class="box coffeescript">
+		CoffeeScript
+		<div class="content">
+			<div class="error"></div>
+			<textarea style="height: 200px; width: 100%"></textarea>
+		</div>
+	</div>
+</body>
+</html>
