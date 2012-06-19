@@ -3,11 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<title>Programming language Web Console</title>
-	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
 			$('.box').click(function() {
-				$(this).children().slideToggle().click(function(){return false;});
+				$(this).unbind('click');
+				$(this).children().slideDown();
 			});
 			
 			$('.layout .vertical').click(function() {
@@ -15,6 +16,32 @@
 			});
 			$('.layout .horizontal').click(function() {
 				$('body').removeClass('vertical').addClass('horizontal');
+			});
+			
+			var qs = decodeURIComponent(location.search.replace(/^\?/, ''))
+			var libs = qs.split(/\s+/);
+			$(libs).each(function() {
+				$('head').append("<" + "script src='" + this + "'>" + "<" + "/script>");
+			});
+			
+			$('.links a').each(function() {
+				var href = $(this).attr('href');
+				if (window.location.search.indexOf(href) == -1) {
+					$(this).attr('href', '?' + qs + ' ' + href);
+				} else {
+					$(this).remove();
+				}
+			})
+			$('.links').each(function() {
+				if ($('a', this).length == 0) {
+					$(this).remove();
+				}
+			});
+			$('.included').each(function() {
+				var included = $(this);
+				$(libs).each(function() {
+					included.append('<' + 'div title="' + this + '">' + this + '<' + '/div>');
+				});
 			});
 		});
 	</script>
@@ -57,10 +84,27 @@
 		body {
 			font-family: 'Exo', sans-serif;
 		}
+		h1 {
+			text-shadow: 0px 0px rgba(0,0,0,0.15), 
+             			 0px 3px rgba(0,0,0,0.15), 
+             			 3px 0px rgba(0,0,0,0.15), 
+             			 0px 0px rgba(0,0,0,0.15);
+      font-style: italic;
+      color: #666666;
+      margin: 0;
+		}
+		a, a:visited {
+			color: black;
+			text-decoration: none;
+		}
+		a:hover {
+			font-weight: bold;
+		}
 		.layout {
+			float: right;
 			text-align: right;
 		}
-		.layout span:hover {
+		.layout div:hover {
 			font-weight: bold;
 		}
 		.box {
@@ -72,6 +116,7 @@
 			background-color: #11FFFF;
 			
 			font-size: 2em;
+			overflow: hidden;
 		}
 		.horizontal .box {
 			width: 28%;
@@ -104,8 +149,11 @@
 </head>
 <body>
 	<div class="layout">
-		<span class="vertical">vertical</span> | <span class="horizontal">horizontal</span>
+		<div class="vertical">vertical</div>
+		<div class="horizontal">horizontal</div>
 	</div>
+	
+	<h1>Programming languages WebConsole</h1>
 	
 	<div class="box scala">
 		Scala
@@ -133,7 +181,17 @@
 	</div>
 	
 	<div class="box coffeescript">
-		CoffeeScript
+		<div style="float: left; padding-right: 2em;">CoffeeScript</div>		
+		<div class="links" style="display: none; float: right; font-size: 0.4em; text-align: right;">
+			<div style="font-size: 0.7em;">include:</div>
+			<div><a href="http://underscorejs.org/underscore-min.js">Underscore.js</a></div>
+			<div><a href="https://raw.github.com/leonidas/transparency/master/lib/transparency.min.js">Transparency</a></div>
+		</div>
+		<div class="included" style="float: left; font-size: 0.4em; padding-right: 2em;">
+			<div style="font-size: 0.7em;">included:</div>
+			<div>http://code.jquery.com/jquery.min.js</div>
+		</div>
+		<div style="clear: both"></div>
 		<div class="content">
 			<div class="error"></div>
 			<textarea style="height: 200px; width: 100%"></textarea>
