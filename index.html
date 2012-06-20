@@ -4,65 +4,57 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<title>Programming language Web Console</title>
 	<script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
-	<script type="text/javascript">
-		$(document).ready(function() {
-			$('.box').click(function() {
-				$(this).unbind('click');
-				$(this).children().slideDown();
-			});
-			
-			$('.layout .vertical').click(function() {
-				$('body').removeClass('horizontal').addClass('vertical');
-			});
-			$('.layout .horizontal').click(function() {
-				$('body').removeClass('vertical').addClass('horizontal');
-			});
-			
-			var qs = decodeURIComponent(location.search.replace(/^\?/, ''))
-			var libs = qs.split(/\s+/);
-			$(libs).each(function() {
-				$('head').append("<" + "script src='" + this + "'>" + "<" + "/script>");
-			});
-			
-			$('.links a').each(function() {
-				var href = $(this).attr('href');
-				if (window.location.search.indexOf(href) == -1) {
-					$(this).attr('href', '?' + qs + ' ' + href);
-				} else {
-					$(this).remove();
-				}
-			})
-			$('.links').each(function() {
-				if ($('a', this).length == 0) {
-					$(this).remove();
-				}
-			});
-			$('.included').each(function() {
-				var included = $(this);
-				$(libs).each(function() {
-					included.append('<' + 'div title="' + this + '">' + this + '<' + '/div>');
-				});
-			});
-		});
-	</script>
 	<script src="http://coffeescript.org/extras/coffee-script.js"></script>
+	<script type="text/coffeescript">
+		$(document).ready ->
+			$('.box').click -> $(this).unbind('click').children().slideDown()
+			
+			$('.layout .vertical').click -> $('body').removeClass('horizontal').addClass('vertical')
+			$('.layout .horizontal').click -> $('body').removeClass('vertical').addClass('horizontal')
+			
+			queryString = decodeURIComponent location.search.replace(/^\?/, '')
+			libs = (qs for qs in queryString.split(/\s+/) when qs isnt '')
+			$(libs).each -> $('head').append("<" + "script src='#{this}'><" + "/script>")
+			
+			$('.links a').each ->
+				href = $(this).attr('href')
+				if window.location.search.indexOf(href) == -1
+					$(this).attr('href', "?#{queryString} #{href}")
+				else
+					$(this).remove()
+
+			$('.links').each -> $(this).remove() if $('a', this).length == 0
+
+			$('.included').each ->
+				included = $(this)
+				$(libs).each -> included.append('<' + 'div title="' + this + '">' + this + '<' + '/div>')
+				
+			$('input').focus ->
+				$(this).val ''
+			$('input').keyup (e) -> if e.which == 13
+				href = $(this).val()
+				if window.location.search != ''
+					window.location.search = href
+				else
+					window.location.search = window.location.search + ' ' + href
+	</script>
 	<script type="text/coffeescript">
 		# Shamelessly copied from coffeescript.org	
 
     compileSource = ->
       source = $('.coffeescript textarea').val()
-      window.compiledJS = ''
+      window.compiledCJS = ''
       try
-        window.compiledJS = CoffeeScript.compile source, bare: on
+        window.compiledCJS = CoffeeScript.compile source, bare: on
         $('.coffeescript .error').hide()
       catch error
         $('.coffeescript .error').text(error.message).show()
 
     $('.coffeescript textarea').keyup -> compileSource()
 
-    evalJS = ->
+    evalCJS = ->
       try
-        eval window.compiledJS
+        eval window.compiledCJS
       catch error then alert error
 
     window.loadConsole = (coffee) ->
@@ -71,6 +63,37 @@
       false
 
     $('.coffeescript textarea')
+      .keydown (e) -> 
+        evalCJS() if e.which == 13
+    
+    loadConsole decodeURIComponent location.hash.replace(/^#/, '')
+		
+    compileSource()	
+	</script>
+	
+	<script type="text/coffeescript">
+    compileSource = ->
+      source = $('.javascript textarea').val()
+      window.compiledJS = ''
+      try
+        window.compiledJS = source
+        $('.javascript .error').hide()
+      catch error
+        $('.javascript .error').text(error.message).show()
+
+    $('.javascript textarea').keyup -> compileSource()
+
+    evalJS = ->
+      try
+        eval window.compiledJS
+      catch error then alert error
+
+    window.loadConsole = (js) ->
+      $('.javascript textarea').val js
+      compileSource()
+      false
+
+    $('.javascript textarea')
       .keydown (e) -> 
         evalJS() if e.which == 13
     
@@ -100,6 +123,15 @@
 		a:hover {
 			font-weight: bold;
 		}
+		input {
+			color: inherit;
+			font-size: 0.5em;
+			border: 1px dotted;
+			border-color: inherit;
+			background: transparent;
+			width: 15em;
+			text-align: right;
+		}
 		.layout {
 			float: right;
 			text-align: right;
@@ -119,7 +151,7 @@
 			overflow: hidden;
 		}
 		.horizontal .box {
-			width: 28%;
+			width: 44%;
 			float: left;
 		}
 		.error {
@@ -145,6 +177,11 @@
 			border-color: #00675C;
 			background-color: #5DCFC3;
 		}
+		.javascript {
+			color: #A68F20;
+			border-color: #A68F20;
+			background-color: #FFF0A8;
+		}
 	</style>
 </head>
 <body>
@@ -153,7 +190,7 @@
 		<div class="horizontal">horizontal</div>
 	</div>
 	
-	<h1>Programming languages WebConsole</h1>
+	<h1><a href="?">Programming languages WebConsole</a></h1>
 	
 	<div class="box scala">
 		Scala
@@ -170,13 +207,14 @@
 
 	<div class="box jruby">
 		JRuby
-		<div class="content">
+		<div class="content" style="position: relative">
 			<applet code="net.lahteenmaki.webconsole.JRubyWebConsole.class"
 				archive="static/WebConsole-0.1-SNAPSHOT.jar,static/jruby-complete-signed.jar"
 				codebase="/"
 				width="100%" 
 				height="200">
 			</applet>
+			<div style="position: absolute; right: 0; bottom: 0; color: LightGray; font-size: 0.1em">code mostly copied from org.jruby.demo.IRBConsole</div>
 		</div>
 	</div>
 	
@@ -186,13 +224,34 @@
 			<div style="font-size: 0.7em;">include:</div>
 			<div><a href="http://underscorejs.org/underscore-min.js">Underscore.js</a></div>
 			<div><a href="https://raw.github.com/leonidas/transparency/master/lib/transparency.min.js">Transparency</a></div>
+			<input id="include" value="type .js URL here and hit enter" />
 		</div>
 		<div class="included" style="float: left; font-size: 0.4em; padding-right: 2em;">
 			<div style="font-size: 0.7em;">included:</div>
 			<div>http://code.jquery.com/jquery.min.js</div>
 		</div>
 		<div style="clear: both"></div>
-		<div class="content">
+		<div class="content" style="position: relative">
+			<div class="error"></div>
+			<textarea style="height: 200px; width: 100%"></textarea>
+			<div style="position: absolute; right: 0; bottom: 0; color: LightGray; font-size: 0.1em">interpreter shamelessly copied from coffeescript.org</div>
+		</div>
+	</div>
+	
+	<div class="box javascript">
+		<div style="float: left; padding-right: 2em;">JavaScript</div>		
+		<div class="links" style="display: none; float: right; font-size: 0.4em; text-align: right;">
+			<div style="font-size: 0.7em;">include:</div>
+			<div><a href="http://underscorejs.org/underscore-min.js">Underscore.js</a></div>
+			<div><a href="https://raw.github.com/leonidas/transparency/master/lib/transparency.min.js">Transparency</a></div>
+			<input id="include" value="type .js URL here and hit enter" />
+		</div>
+		<div class="included" style="float: left; font-size: 0.4em; padding-right: 2em;">
+			<div style="font-size: 0.7em;">included:</div>
+			<div>http://code.jquery.com/jquery.min.js</div>
+		</div>
+		<div style="clear: both"></div>
+		<div class="content" style="position: relative">
 			<div class="error"></div>
 			<textarea style="height: 200px; width: 100%"></textarea>
 		</div>
