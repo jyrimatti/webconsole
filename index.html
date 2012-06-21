@@ -8,6 +8,7 @@
 	<script type="text/coffeescript">
 		$(document).ready ->
 			$('.box').click -> $(this).unbind('click').children().slideDown()
+			$('.box h2').click -> $(this).siblings().slideToggle()
 			
 			$('.layout .vertical').click -> $('body').removeClass('horizontal').addClass('vertical')
 			$('.layout .horizontal').click -> $('body').removeClass('vertical').addClass('horizontal')
@@ -31,12 +32,18 @@
 				
 			$('input').focus ->
 				$(this).val ''
-			$('input').keyup (e) -> if e.which == 13
+			$('input.include').keyup (e) -> if e.which == 13
 				href = $(this).val()
 				if window.location.search != ''
 					window.location.search = href
 				else
 					window.location.search = window.location.search + ' ' + href
+					
+			$('.showCompiled input').change (e) ->
+				checked = $(this).is(':checked')
+				window.copyCompiled = checked
+				$('.javascript h2').siblings().slideDown() if checked
+				
 	</script>
 	<script type="text/coffeescript">
 		# Shamelessly copied from coffeescript.org	
@@ -47,8 +54,10 @@
       try
         window.compiledCJS = CoffeeScript.compile source, bare: on
         $('.coffeescript .error').hide()
+        $('.javascript textarea').val(window.compiledCJS) if window.copyCompiled
       catch error
         $('.coffeescript .error').text(error.message).show()
+        $('.javascript textarea').val('') if window.copyCompiled
 
     $('.coffeescript textarea').keyup -> compileSource()
 
@@ -116,6 +125,18 @@
       color: #666666;
       margin: 0;
 		}
+		h2, h6 {
+			margin: 0;
+			font-weight: normal;
+		}
+		h2 {
+			font-size: 1em;
+			float: left;
+			padding-right: 2em;
+		}
+		h6 {
+			font-size: 0.7em;
+		}
 		a, a:visited {
 			color: black;
 			text-decoration: none;
@@ -123,14 +144,23 @@
 		a:hover {
 			font-weight: bold;
 		}
-		input {
+		input[type='text'] {
 			color: inherit;
 			font-size: 0.5em;
 			border: 1px dotted;
+			border-radius: 0.5em;
 			border-color: inherit;
 			background: transparent;
 			width: 15em;
 			text-align: right;
+			margin-top: 1px;
+		}
+		input:hover {
+			border-style: solid;
+		}
+		textarea {
+			height: 200px;
+			width: 100%;
 		}
 		.layout {
 			float: right;
@@ -160,7 +190,34 @@
 		}
 		.content {
 			display: none;
-			margin-top: 0.5em;
+			margin-top: 0.2em;
+			position: relative;
+			clear: both;
+		}
+		.links {
+			display: none;
+			float: right;
+			font-size: 0.4em;
+			text-align: right;
+		}
+		.links a {
+			display: block;
+		}
+		.included {
+			float: left;
+			font-size: 0.4em;
+			padding-right: 2em;
+		}
+		.disclaimer {
+			position: absolute;
+			right: 0;
+			bottom: 0;
+			color: LightGray;
+			font-size: 0.1em;
+		}
+		.showCompiled {
+			display: none;
+			font-size: 0.2em;
 		}
 		.scala {
 			color: #052C6E;
@@ -193,7 +250,7 @@
 	<h1><a href="?">Programming languages WebConsole</a></h1>
 	
 	<div class="box scala">
-		Scala
+		<h2>Scala</h2>
 		<div class="content">
 			<applet code="net.lahteenmaki.webconsole.ScalaWebConsole.class"
 				archive="static/WebConsole-0.1-SNAPSHOT.jar"
@@ -206,54 +263,58 @@
 	</div>
 
 	<div class="box jruby">
-		JRuby
-		<div class="content" style="position: relative">
+		<h2>JRuby</h2>
+		<div class="content">
 			<applet code="net.lahteenmaki.webconsole.JRubyWebConsole.class"
 				archive="static/WebConsole-0.1-SNAPSHOT.jar,static/jruby-complete-signed.jar"
 				codebase="/"
 				width="100%" 
 				height="200">
 			</applet>
-			<div style="position: absolute; right: 0; bottom: 0; color: LightGray; font-size: 0.1em">code mostly copied from org.jruby.demo.IRBConsole</div>
+			<div class="disclaimer">code mostly copied from org.jruby.demo.IRBConsole</div>
 		</div>
 	</div>
 	
 	<div class="box coffeescript">
-		<div style="float: left; padding-right: 2em;">CoffeeScript</div>		
-		<div class="links" style="display: none; float: right; font-size: 0.4em; text-align: right;">
-			<div style="font-size: 0.7em;">include:</div>
-			<div><a href="http://underscorejs.org/underscore-min.js">Underscore.js</a></div>
-			<div><a href="https://raw.github.com/leonidas/transparency/master/lib/transparency.min.js">Transparency</a></div>
-			<input id="include" value="type .js URL here and hit enter" />
+		<h2>CoffeeScript</h2>
+		<div class="links">
+			<h6>include:</h6>
+			<a href="http://underscorejs.org/underscore-min.js">Underscore.js</a>
+			<a href="https://raw.github.com/leonidas/transparency/master/lib/transparency.min.js">Transparency</a>
+			<input class="include" type="text" value="type .js URL here and hit enter" />
 		</div>
-		<div class="included" style="float: left; font-size: 0.4em; padding-right: 2em;">
-			<div style="font-size: 0.7em;">included:</div>
+		<div class="included">
+			<h6>included:</h6>
 			<div>http://code.jquery.com/jquery.min.js</div>
 		</div>
 		<div style="clear: both"></div>
-		<div class="content" style="position: relative">
+		<div class="content">
 			<div class="error"></div>
-			<textarea style="height: 200px; width: 100%"></textarea>
-			<div style="position: absolute; right: 0; bottom: 0; color: LightGray; font-size: 0.1em">interpreter shamelessly copied from coffeescript.org</div>
+			<textarea></textarea>
+			<div class="disclaimer">interpreter shamelessly copied from coffeescript.org</div>
+		</div>
+		<div class="showCompiled">
+			<input id="showCompiled" type="checkbox" />
+			<label for="showCompiled">show compiled source in JavaScript box</label>
 		</div>
 	</div>
 	
 	<div class="box javascript">
-		<div style="float: left; padding-right: 2em;">JavaScript</div>		
-		<div class="links" style="display: none; float: right; font-size: 0.4em; text-align: right;">
-			<div style="font-size: 0.7em;">include:</div>
-			<div><a href="http://underscorejs.org/underscore-min.js">Underscore.js</a></div>
-			<div><a href="https://raw.github.com/leonidas/transparency/master/lib/transparency.min.js">Transparency</a></div>
-			<input id="include" value="type .js URL here and hit enter" />
+		<h2>JavaScript</h2>		
+		<div class="links">
+			<h6>include:</h6>
+			<a href="http://underscorejs.org/underscore-min.js">Underscore.js</a>
+			<a href="https://raw.github.com/leonidas/transparency/master/lib/transparency.min.js">Transparency</a>
+			<input class="include" type="text" value="type .js URL here and hit enter" />
 		</div>
-		<div class="included" style="float: left; font-size: 0.4em; padding-right: 2em;">
-			<div style="font-size: 0.7em;">included:</div>
+		<div class="included">
+			<h6>included:</h6>
 			<div>http://code.jquery.com/jquery.min.js</div>
 		</div>
 		<div style="clear: both"></div>
 		<div class="content" style="position: relative">
 			<div class="error"></div>
-			<textarea style="height: 200px; width: 100%"></textarea>
+			<textarea></textarea>
 		</div>
 	</div>
 </body>
