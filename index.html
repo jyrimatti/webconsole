@@ -4,9 +4,12 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<title>Programming language Web Console</title>
 	<script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
-	<script src="http://coffeescript.org/extras/coffee-script.js"></script>
+	<script type="text/javascript" src="http://coffeescript.org/extras/coffee-script.js"></script>
+	<script type="text/javascript" src="https://raw.github.com/weepy/kaffeine/master/web/try/kaffeine-browser.js"></script>
 	<script type="text/coffeescript">
 		$(document).ready ->
+		  window.Kaffeine = require("kaffeine")
+		  
 			$('.box').click -> $(this).unbind('click').children().slideDown()
 			$('.box h2').click -> $(this).siblings().slideToggle()
 			
@@ -74,6 +77,38 @@
     $('.coffeescript textarea')
       .keydown (e) -> 
         evalCJS() if e.which == 13
+    
+    loadConsole decodeURIComponent location.hash.replace(/^#/, '')
+		
+    compileSource()	
+	</script>
+	<script type="text/coffeescript">
+    compileSource = ->
+      source = $('.kaffeine textarea').val()
+      window.compiledKJS = ''
+      try
+        window.compiledKJS = new window.Kaffeine().compile(source, 'beautify')
+        $('.kaffeine .error').hide()
+        $('.javascript textarea').val(window.compiledKJS) if window.copyCompiled
+      catch error
+        $('.kaffeine .error').text(error.message).show()
+        $('.javascript textarea').val('') if window.copyCompiled
+
+    $('.kaffeine textarea').keyup -> compileSource()
+
+    evalKJS = ->
+      try
+        eval window.compiledKJS
+      catch error then alert error
+
+    window.loadConsole = (coffee) ->
+      $('.kaffeine textarea').val coffee
+      compileSource()
+      false
+
+    $('.kaffeine textarea')
+      .keydown (e) -> 
+        evalKJS() if e.which == 13
     
     loadConsole decodeURIComponent location.hash.replace(/^#/, '')
 		
@@ -172,6 +207,7 @@
 		.box {
 			margin: 0.5em;
 			padding: 0.25em 0.5em;
+			position: relative;
 			
 			border: 1px solid #FF0000;
 			border-radius: 0.25em;
@@ -208,6 +244,10 @@
 			font-size: 0.4em;
 			padding-right: 2em;
 		}
+		.vertical .included {
+			position: absolute;
+			left: 20em;
+		}
 		.disclaimer {
 			position: absolute;
 			right: 0;
@@ -234,6 +274,11 @@
 			border-color: #00675C;
 			background-color: #5DCFC3;
 		}
+		.kaffeine {
+			color: #5AA1F7;
+			border-color: #5AA1F7;
+			background-color: #CFF;
+		}
 		.javascript {
 			color: #A68F20;
 			border-color: #A68F20;
@@ -241,7 +286,7 @@
 		}
 	</style>
 </head>
-<body>
+<body class="vertical">
 	<div class="layout">
 		<div class="vertical">vertical</div>
 		<div class="horizontal">horizontal</div>
@@ -294,8 +339,35 @@
 			<div class="disclaimer">interpreter shamelessly copied from coffeescript.org</div>
 		</div>
 		<div class="showCompiled">
-			<input id="showCompiled" type="checkbox" />
-			<label for="showCompiled">show compiled source in JavaScript box</label>
+			<label>
+				<input type="checkbox" />
+				show compiled source in JavaScript box
+			</label>
+		</div>
+	</div>
+	
+	<div class="box kaffeine">
+		<h2>Kaffeine</h2>
+		<div class="links">
+			<h6>include:</h6>
+			<a href="http://underscorejs.org/underscore-min.js">Underscore.js</a>
+			<a href="https://raw.github.com/leonidas/transparency/master/lib/transparency.min.js">Transparency</a>
+			<input class="include" type="text" value="type .js URL here and hit enter" />
+		</div>
+		<div class="included">
+			<h6>included:</h6>
+			<div>http://code.jquery.com/jquery.min.js</div>
+		</div>
+		<div style="clear: both"></div>
+		<div class="content">
+			<div class="error"></div>
+			<textarea></textarea>
+		</div>
+		<div class="showCompiled">
+			<label>
+				<input type="checkbox" />
+				show compiled source in JavaScript box
+			</label>
 		</div>
 	</div>
 	
