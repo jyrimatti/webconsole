@@ -70,7 +70,6 @@
 				resize: (event,ui) ->
 					$('.content, .content textarea', event.target).css('max-height', (ui.size.height-61-55)+'px')
 					sizes = JSON.parse($.cookie('sizes'))
-					sizes = if sizes? sizes else {}
 					lang = $('h2', event.target).text()
 					sizes[lang.toLowerCase()] = ui.size
 					$.cookie('sizes', JSON.stringify(sizes), {expires: 365})
@@ -80,14 +79,13 @@
 				drag: (event,ui) ->
 					$(event.target).css('position', 'absolute')
 					positions = JSON.parse($.cookie('positions'))
-					positions = if positions? positions else {}
 					lang = $('h2', event.target).text()
 					positions[lang.toLowerCase()] = ui.position
 					$.cookie('positions', JSON.stringify(positions), {expires: 365})
 			
 			sizes = JSON.parse($.cookie('sizes'))
 			if sizes?
-				$('.' + lang).width(value.width).height(value.height) for lang,value of JSON.parse(sizes)
+				$('.' + lang).width(value.width).height(value.height) for lang,value of sizes
 				
 			positions = JSON.parse($.cookie('positions'))
 			if positions?
