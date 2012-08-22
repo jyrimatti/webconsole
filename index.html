@@ -4,17 +4,30 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<title>Programming language Web Console</title>
 	<script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
-	<script type="text/javascript" src="http://coffeescript.org/extras/coffee-script.js"></script>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="https://raw.github.com/carhartl/jquery-cookie/master/jquery.cookie.js"></script>
+	<script type="text/javascript" src="coffee-script.js"></script>
 	<script type="text/javascript" src="https://raw.github.com/weepy/kaffeine/master/web/try/kaffeine-browser.js"></script>
 	<script type="text/coffeescript">
+		resetDrag = ->
+			$('.box').removeAttr('style')
+
 		$(document).ready ->
-		  window.Kaffeine = require("kaffeine")
+			window.Kaffeine = require("kaffeine")
 		  
-			$('.box').click -> $(this).unbind('click').children().slideDown()
-			$('.box h2').click -> $(this).siblings().slideToggle()
+			$('.box').click -> $(this).unbind('click').removeClass('closed')
+			$('.box h2').click -> $(this).parent().toggleClass('closed')
+
+			if location.hash.replace(/^#/, '') != ''
+				$('.' + (decodeURIComponent location.hash.replace(/^#/, '').replace(/:.*/, '')) ).click()
 			
-			$('.layout .vertical').click -> $('body').removeClass('horizontal').addClass('vertical')
-			$('.layout .horizontal').click -> $('body').removeClass('vertical').addClass('horizontal')
+			$('.layout .vertical').click -> 
+				$('body').removeClass('horizontal').addClass('vertical')
+				resetDrag()
+
+			$('.layout .horizontal').click -> 
+				$('body').removeClass('vertical').addClass('horizontal')
+				resetDrag()
 			
 			queryString = decodeURIComponent location.search.replace(/^\?/, '')
 			libs = (qs for qs in queryString.split(/\s+/) when qs isnt '')
@@ -45,9 +58,42 @@
 			$('.showCompiled input').change (e) ->
 				checked = $(this).is(':checked')
 				window.copyCompiled = checked
-				$('.javascript h2').siblings().slideDown() if checked
+				$('.javascript h2').click() if checked and $('.javascript').is('.closed')
+			
+			$('.box').resizable
+				animate: true,
+				animateDuration: 'fast',
+				ghost: true,
+				minHeight: 61,
+				minWidth: 250,
+				autoHide: true,
+				resize: (event,ui) ->
+					$('.content, .content textarea', event.target).css('max-height', (ui.size.height-61-55)+'px')
+					sizes = JSON.parse($.cookie('sizes'))
+					sizes = if sizes? sizes else {}
+					lang = $('h2', event.target).text()
+					sizes[lang] = ui.size
+					$.cookie('sizes', JSON.stringify(sizes))
+
+			$('.box').draggable
+				containment: "window",
+				drag: (event,ui) ->
+					$(event.target).css('position', 'absolute')
+					positions = JSON.parse($.cookie('positions'))
+					positions = if positions? positions else {}
+					lang = $('h2', event.target).text()
+					positions[lang] = ui.position
+					$.cookie('positions', JSON.stringify(positions))
+			
+			sizes = JSON.parse($.cookie('sizes'))
+			if sizes?
+				$('.' + lang).width(value.width).height(value.height) for lang,value in sizes
 				
+			positions = JSON.parse($.cookie('positions'))
+			if positions?
+				$('.' + lang).css('position', 'absolute').offset(value) for lang,value in positions
 	</script>
+
 	<script type="text/coffeescript">
 		# Shamelessly copied from coffeescript.org	
 
@@ -78,10 +124,12 @@
       .keydown (e) -> 
         evalCJS() if e.which == 13
     
-    loadConsole decodeURIComponent location.hash.replace(/^#/, '')
+    if location.hash.match /^#coffeescript:/
+    	loadConsole decodeURIComponent location.hash.replace(/^#coffeescript:/, '')
 		
     compileSource()	
 	</script>
+
 	<script type="text/coffeescript">
     compileSource = ->
       source = $('.kaffeine textarea').val()
@@ -110,7 +158,8 @@
       .keydown (e) -> 
         evalKJS() if e.which == 13
     
-    loadConsole decodeURIComponent location.hash.replace(/^#/, '')
+    if location.hash.match /^#kaffeine:/
+    	loadConsole decodeURIComponent location.hash.replace(/^#kaffeine:/, '')
 		
     compileSource()	
 	</script>
@@ -141,14 +190,16 @@
       .keydown (e) -> 
         evalJS() if e.which == 13
     
-    loadConsole decodeURIComponent location.hash.replace(/^#/, '')
+    if location.hash.match /^#javascript:/
+    	loadConsole decodeURIComponent location.hash.replace(/^#javascript:/, '')
 		
     compileSource()	
 	</script>
 	
 	<link href='http://fonts.googleapis.com/css?family=Exo' rel='stylesheet' type='text/css' />
+	<link href='http://code.jquery.com/ui/1.8.23/themes/ui-lightness/jquery-ui.css' rel='stylesheet' type='text/css' />
 	<style type="text/css">
-		body {
+		html {
 			font-family: 'Exo', sans-serif;
 		}
 		h1 {
@@ -156,9 +207,9 @@
              			 0px 3px rgba(0,0,0,0.15), 
              			 3px 0px rgba(0,0,0,0.15), 
              			 0px 0px rgba(0,0,0,0.15);
-      font-style: italic;
-      color: #666666;
-      margin: 0;
+      		font-style: italic;
+      		color: #666666;
+      		margin: 0;
 		}
 		h2, h6 {
 			margin: 0;
@@ -194,7 +245,7 @@
 			border-style: solid;
 		}
 		textarea {
-			height: 200px;
+			height: 100%;
 			width: 100%;
 		}
 		.layout {
@@ -216,6 +267,16 @@
 			font-size: 2em;
 			overflow: hidden;
 		}
+		.box.closed {
+			height: 42px !important;
+			min-height: 0 !important;
+		}
+		.box.closed * {
+			display: none;
+		}
+		.box.closed h2 {
+			display: block;
+		}
 		.horizontal .box {
 			width: 44%;
 			float: left;
@@ -225,13 +286,12 @@
 			font-size: 0.5em;
 		}
 		.content {
-			display: none;
 			margin-top: 0.2em;
 			position: relative;
 			clear: both;
+			height: 100%;
 		}
 		.links {
-			display: none;
 			float: right;
 			font-size: 0.4em;
 			text-align: right;
@@ -245,8 +305,7 @@
 			padding-right: 2em;
 		}
 		.vertical .included {
-			position: absolute;
-			left: 20em;
+			margin-left: 10em;
 		}
 		.disclaimer {
 			position: absolute;
@@ -256,8 +315,8 @@
 			font-size: 0.1em;
 		}
 		.showCompiled {
-			display: none;
 			font-size: 0.2em;
+			margin-top: 5px;
 		}
 		.scala {
 			color: #052C6E;
@@ -294,7 +353,7 @@
 	
 	<h1><a href="?">Programming languages WebConsole</a></h1>
 	
-	<div class="box scala">
+	<div class="box closed scala">
 		<h2>Scala</h2>
 		<div class="content">
 			<applet code="net.lahteenmaki.webconsole.ScalaWebConsole.class"
@@ -307,7 +366,7 @@
 		</div>
 	</div>
 
-	<div class="box jruby">
+	<div class="box closed jruby">
 		<h2>JRuby</h2>
 		<div class="content">
 			<applet code="net.lahteenmaki.webconsole.JRubyWebConsole.class"
@@ -320,7 +379,7 @@
 		</div>
 	</div>
 	
-	<div class="box coffeescript">
+	<div class="box closed coffeescript">
 		<h2>CoffeeScript</h2>
 		<div class="links">
 			<h6>include:</h6>
@@ -346,7 +405,7 @@
 		</div>
 	</div>
 	
-	<div class="box kaffeine">
+	<div class="box closed kaffeine">
 		<h2>Kaffeine</h2>
 		<div class="links">
 			<h6>include:</h6>
@@ -371,7 +430,7 @@
 		</div>
 	</div>
 	
-	<div class="box javascript">
+	<div class="box closed javascript">
 		<h2>JavaScript</h2>		
 		<div class="links">
 			<h6>include:</h6>
