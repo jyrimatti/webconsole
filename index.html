@@ -72,8 +72,8 @@
 					sizes = JSON.parse($.cookie('sizes'))
 					sizes = if sizes? sizes else {}
 					lang = $('h2', event.target).text()
-					sizes[lang] = ui.size
-					$.cookie('sizes', JSON.stringify(sizes))
+					sizes[lang.toLowerCase()] = ui.size
+					$.cookie('sizes', JSON.stringify(sizes), {expires: 365})
 
 			$('.box').draggable
 				containment: "window",
@@ -82,16 +82,16 @@
 					positions = JSON.parse($.cookie('positions'))
 					positions = if positions? positions else {}
 					lang = $('h2', event.target).text()
-					positions[lang] = ui.position
-					$.cookie('positions', JSON.stringify(positions))
+					positions[lang.toLowerCase()] = ui.position
+					$.cookie('positions', JSON.stringify(positions), {expires: 365})
 			
 			sizes = JSON.parse($.cookie('sizes'))
 			if sizes?
-				$('.' + lang).width(value.width).height(value.height) for lang,value in sizes
+				$('.' + lang).width(value.width).height(value.height) for lang,value of JSON.parse(sizes)
 				
 			positions = JSON.parse($.cookie('positions'))
 			if positions?
-				$('.' + lang).css('position', 'absolute').offset(value) for lang,value in positions
+				$('.' + lang).css('position', 'absolute').offset(value) for lang,value of positions
 	</script>
 
 	<script type="text/coffeescript">
