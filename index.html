@@ -11,6 +11,8 @@
 	<script type="text/coffeescript">
 		resetDrag = ->
 			$('.box').removeAttr('style')
+			$.cookie('sizes', null)
+			$.cookie('positions', null)
 
 		$(document).ready ->
 			window.Kaffeine = require("kaffeine")
