@@ -36,6 +36,12 @@
 				resetDrag()
 				$('body').sortable 'disable'
 				$('.box').draggable 'enable'
+				sizes = JSON.parse($.cookie('sizes'))
+				positions = JSON.parse($.cookie('positions'))
+				if sizes?
+					$('.' + lang).width(value.width).height(value.height) for lang,value of sizes
+				if positions?
+					$('.' + lang).css('position', 'absolute').offset(value) for lang,value of positions
 			
 			queryString = decodeURIComponent location.search.replace(/^\?/, '')
 			libs = (qs for qs in queryString.split(/\s+/) when qs isnt '')
@@ -103,10 +109,6 @@
 			positions = JSON.parse($.cookie('positions'))
 			if sizes? or positions?
 				$('.layout .custom').click
-				if sizes?
-					$('.' + lang).width(value.width).height(value.height) for lang,value of sizes
-				if positions?
-					$('.' + lang).css('position', 'absolute').offset(value) for lang,value of positions
 	</script>
 
 	<script type="text/coffeescript">
