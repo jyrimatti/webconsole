@@ -111,8 +111,8 @@ class ScalaWebConsole extends Applet {
 				def run = {
 					val loop = new ILoop(in, out)
 					val ref = getDocumentBase.getRef
-					if (ref != null) {
-						queue write decode(ref, "UTF-8") + '\n'
+					if (ref != null && ref.startsWith("scala:")) {
+						queue write decode(ref.substring("scala:".length), "UTF-8") + '\n'
 					}
 					loop.process(CustomSettings)
 				}
