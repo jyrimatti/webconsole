@@ -10,9 +10,9 @@
 	<script type="text/javascript" src="https://raw.github.com/weepy/kaffeine/master/web/try/kaffeine-browser.js"></script>
 	<script type="text/coffeescript">
 		resetDrag = ->
-			$('.box').removeAttr('style')
-			$.cookie('sizes', null)
-			$.cookie('positions', null)
+			$('.box').removeAttr 'style'
+			$('.box').draggable 'disable'
+			$('body').sortable 'enable'
 
 		$(document).ready ->
 			window.Kaffeine = require("kaffeine")
@@ -30,6 +30,12 @@
 			$('.layout .horizontal').click -> 
 				$('body').removeClass('vertical').addClass('horizontal')
 				resetDrag()
+
+			$('.layout .custom').click -> 
+				$('body').removeClass('vertical').removeClass('horizontal')
+				resetDrag()
+				$('body').sortable 'disable'
+				$('.box').draggable 'enable'
 			
 			queryString = decodeURIComponent location.search.replace(/^\?/, '')
 			libs = (qs for qs in queryString.split(/\s+/) when qs isnt '')
@@ -62,6 +68,8 @@
 				window.copyCompiled = checked
 				$('.javascript h2').click() if checked and $('.javascript').is('.closed')
 			
+			$('body').sortable()
+
 			$('.box').resizable
 				animate: true,
 				animateDuration: 'fast',
@@ -70,13 +78,19 @@
 				minWidth: 250,
 				autoHide: true,
 				resize: (event,ui) ->
+					ui.size.width = '100%'
+					$(event.target).css('position', 'relative').css('top', '0').css('left', '0')
 					$('.content, .content textarea', event.target).css('max-height', (ui.size.height-61-55)+'px')
 					sizes = JSON.parse($.cookie('sizes')) or {}
 					lang = $('h2', event.target).text()
 					sizes[lang.toLowerCase()] = ui.size
 					$.cookie('sizes', JSON.stringify(sizes), {expires: 365})
+				stop: (event,ui) ->
+					$('body').sortable 'destroy'
+					$('body').sortable()
 
 			$('.box').draggable
+				disabled: true,
 				containment: "window",
 				drag: (event,ui) ->
 					$(event.target).css('position', 'absolute')
@@ -86,12 +100,13 @@
 					$.cookie('positions', JSON.stringify(positions), {expires: 365})
 			
 			sizes = JSON.parse($.cookie('sizes'))
-			if sizes?
-				$('.' + lang).width(value.width).height(value.height) for lang,value of sizes
-				
 			positions = JSON.parse($.cookie('positions'))
-			if positions?
-				$('.' + lang).css('position', 'absolute').offset(value) for lang,value of positions
+			if sizes? or positions?
+				$('.layout .custom').click
+				if sizes?
+					$('.' + lang).width(value.width).height(value.height) for lang,value of sizes
+				if positions?
+					$('.' + lang).css('position', 'absolute').offset(value) for lang,value of positions
 	</script>
 
 	<script type="text/coffeescript">
@@ -252,13 +267,20 @@
 			float: right;
 			text-align: right;
 		}
-		.layout div:hover {
+		.layout span:not(:last-child):after {
+			content: ' | '
+		}
+		.layout span:hover {
+			font-weight: bold;
+		}
+		.vertical .vertical,
+		.horizontal .horizontal,
+		.custom .custom {
 			font-weight: bold;
 		}
 		.box {
 			margin: 0.5em;
 			padding: 0.25em 0.5em;
-			position: relative;
 			
 			border: 1px solid #FF0000;
 			border-radius: 0.25em;
@@ -276,6 +298,10 @@
 		}
 		.box.closed h2 {
 			display: block;
+		}
+		.vertical .box {
+			left: 0;
+			right: 0;
 		}
 		.horizontal .box {
 			width: 44%;
@@ -343,12 +369,17 @@
 			border-color: #A68F20;
 			background-color: #FFF0A8;
 		}
+
+		.ui-state-disabled {
+			opacity: 1.0;
+		}
 	</style>
 </head>
 <body class="vertical">
 	<div class="layout">
-		<div class="vertical">vertical</div>
-		<div class="horizontal">horizontal</div>
+		<span class="vertical">vertical</span>
+		<span class="horizontal">horizontal</span>
+		<span class="custom">custom</span>
 	</div>
 	
 	<h1><a href="?">Programming languages WebConsole</a></h1>
