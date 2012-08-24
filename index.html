@@ -71,7 +71,7 @@
 				autoHide: true,
 				resize: (event,ui) ->
 					$('.content, .content textarea', event.target).css('max-height', (ui.size.height-61-55)+'px')
-					sizes = JSON.parse($.cookie('sizes')) | {}
+					sizes = JSON.parse($.cookie('sizes')) or {}
 					lang = $('h2', event.target).text()
 					sizes[lang.toLowerCase()] = ui.size
 					$.cookie('sizes', JSON.stringify(sizes), {expires: 365})
@@ -80,7 +80,7 @@
 				containment: "window",
 				drag: (event,ui) ->
 					$(event.target).css('position', 'absolute')
-					positions = JSON.parse($.cookie('positions')) | {}
+					positions = JSON.parse($.cookie('positions')) or {}
 					lang = $('h2', event.target).text()
 					positions[lang.toLowerCase()] = ui.position
 					$.cookie('positions', JSON.stringify(positions), {expires: 365})
