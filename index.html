@@ -24,15 +24,15 @@
 				$('.' + (decodeURIComponent location.hash.replace(/^#/, '').replace(/:.*/, '')) ).click()
 			
 			$('.layout .vertical').click -> 
-				$('body').removeClass('horizontal').addClass('vertical')
+				$('body').removeClass('custom').removeClass('horizontal').addClass('vertical')
 				resetDrag()
 
 			$('.layout .horizontal').click -> 
-				$('body').removeClass('vertical').addClass('horizontal')
+				$('body').removeClass('custom').removeClass('vertical').addClass('horizontal')
 				resetDrag()
 
 			$('.layout .custom').click -> 
-				$('body').removeClass('vertical').removeClass('horizontal')
+				$('body').addClass('custom').removeClass('vertical').removeClass('horizontal')
 				resetDrag()
 				$('body').sortable 'disable'
 				$('.box').draggable 'enable'
@@ -84,7 +84,8 @@
 				minWidth: 250,
 				autoHide: true,
 				resize: (event,ui) ->
-					ui.size.width = '100%'
+					if !$('body').hasClass('custom')
+						ui.size.width = '100%'
 					$(event.target).css('position', 'relative').css('top', '0').css('left', '0')
 					$('.content, .content textarea', event.target).css('max-height', (ui.size.height-61-55)+'px')
 					sizes = JSON.parse($.cookie('sizes')) or {}
