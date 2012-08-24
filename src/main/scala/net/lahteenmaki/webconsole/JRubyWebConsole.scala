@@ -36,7 +36,8 @@ class JRubyWebConsole extends Applet {
 			val pane = new TextArea
 			contents = new ScrollPane { contents = pane }
 
-			val ref = if (getDocumentBase.getRef != null) decode(getDocumentBase.getRef, "UTF-8") + "\n" else ""
+			val r = getDocumentBase.getRef
+			val ref = if (r != null && r.startsWith("jruby:")) decode(r.substring("jruby:".length), "UTF-8") + "\n" else ""
 	        val tar = new TextAreaReadline(pane.peer)
 	
 	        val config = new RubyInstanceConfig {
