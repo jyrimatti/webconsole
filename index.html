@@ -3,10 +3,10 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<title>Programming language Web Console</title>
-	<script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
-	<script type="text/javascript" src="https://raw.github.com/carhartl/jquery-cookie/master/jquery.cookie.js"></script>
-	<script type="text/javascript" src="static/coffee-script.js"></script>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+	<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.3.1/jquery.cookie.min.js"></script>
+	<script type="text/javascript" src="http://www.coffeescript.org/extras/coffee-script.js"></script>
 	<script type="text/javascript" src="http://weepy.github.com/kaffeine/js/kaffeine-browser.js"></script>
 	<script type="text/coffeescript">
 		resetDrag = ->
@@ -36,8 +36,8 @@
 				resetDrag()
 				$('body').sortable 'disable'
 				$('.box').draggable 'enable'
-				sizes = JSON.parse($.cookie('sizes'))
-				positions = JSON.parse($.cookie('positions'))
+				sizes = if $.cookie('sizes') then JSON.parse($.cookie('sizes')) else undefined
+				positions = if $.cookie('sizes') then JSON.parse($.cookie('positions')) else undefined
 				if sizes?
 					$('.' + lang).width(value.width).height(value.height) for lang,value of sizes
 				if positions?
@@ -88,7 +88,7 @@
 						ui.size.width = 'auto%'
 					$(event.target).css('position', 'relative').css('top', '0').css('left', '0')
 					$('.content, .content textarea', event.target).css('max-height', (ui.size.height-61-55)+'px')
-					sizes = JSON.parse($.cookie('sizes')) or {}
+					sizes = if $.cookie('sizes') then JSON.parse($.cookie('sizes')) else {}
 					lang = $('h2', event.target).text()
 					sizes[lang.toLowerCase()] = ui.size
 					$.cookie('sizes', JSON.stringify(sizes), {expires: 365})
@@ -101,13 +101,13 @@
 				containment: "window",
 				drag: (event,ui) ->
 					$(event.target).css('position', 'absolute')
-					positions = JSON.parse($.cookie('positions')) or {}
+					positions = if $.cookie('positions') then JSON.parse($.cookie('positions')) else {}
 					lang = $('h2', event.target).text()
 					positions[lang.toLowerCase()] = ui.position
 					$.cookie('positions', JSON.stringify(positions), {expires: 365})
 			
-			sizes = JSON.parse($.cookie('sizes'))
-			positions = JSON.parse($.cookie('positions'))
+			sizes = if $.cookie('sizes') then JSON.parse($.cookie('sizes')) else undefined
+			positions = if $.cookie('positions') then JSON.parse($.cookie('positions')) else undefined
 			if sizes? or positions?
 				$('.layout .custom').click
 	</script>
@@ -215,7 +215,7 @@
 	</script>
 	
 	<link href='http://fonts.googleapis.com/css?family=Exo' rel='stylesheet' type='text/css' />
-	<link href='http://code.jquery.com/ui/1.8.23/themes/ui-lightness/jquery-ui.css' rel='stylesheet' type='text/css' />
+	<link href='http://code.jquery.com/ui/1.10.3/themes/ui-lightness/jquery-ui.css' rel='stylesheet' type='text/css' />
 	<style type="text/css">
 		html {
 			font-family: 'Exo', sans-serif;
@@ -423,7 +423,7 @@
 		</div>
 		<div class="included">
 			<h6>included:</h6>
-			<div>http://code.jquery.com/jquery.min.js</div>
+			<div>http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js</div>
 		</div>
 		<div style="clear: both"></div>
 		<div class="content">
@@ -449,7 +449,7 @@
 		</div>
 		<div class="included">
 			<h6>included:</h6>
-			<div>http://code.jquery.com/jquery.min.js</div>
+			<div>http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js</div>
 		</div>
 		<div style="clear: both"></div>
 		<div class="content">
@@ -474,7 +474,7 @@
 		</div>
 		<div class="included">
 			<h6>included:</h6>
-			<div>http://code.jquery.com/jquery.min.js</div>
+			<div>http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js</div>
 		</div>
 		<div style="clear: both"></div>
 		<div class="content" style="position: relative">
